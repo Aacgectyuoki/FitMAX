@@ -68,7 +68,7 @@ const ActivityForm = ({ fetchActivities }) => {
         name="plannedNotes"
         label="Planned"
         multiline
-        rows={2}
+        rows={4}
         value={form.plannedNotes}
         onChange={handleChange}
       />
@@ -76,7 +76,7 @@ const ActivityForm = ({ fetchActivities }) => {
         name="actualNotes"
         label="Actual"
         multiline
-        rows={2}
+        rows={4}
         value={form.actualNotes}
         onChange={handleChange}
       />
