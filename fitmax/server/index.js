@@ -9,7 +9,7 @@ app.use(bodyParser.json());
 app.use(cors());
 
 mongoose.set('debug', true);
-mongoose.connect('mongodb://127.0.0.1:27017/fitmax')
+mongoose.connect(process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/fitmax')
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.log('Error connecting to MongoDB:', err));
 
@@ -18,14 +18,15 @@ const Schema = mongoose.Schema;
 const activitySchema = new Schema({
   date: { type: Date, required: true },
   type: { type: String, required: true },
-  notes: { type: String },
+  plannedNotes: { type: String },
+  actualNotes: { type: String },
 });
 
 const Activity = mongoose.model('Activity', activitySchema);
 
 app.post('/api/activities', async (req, res) => {
-  const { date, type, notes } = req.body;
-  const activity = new Activity({ date: new Date(date), type, notes });
+  const { date, type, plannedNotes, actualNotes } = req.body;
+  const activity = new Activity({ date: new Date(date), type, plannedNotes, actualNotes });
   await activity.save();
   res.send(activity);
 });
@@ -37,8 +38,8 @@ app.get('/api/activities', async (req, res) => {
 
 app.put('/api/activities/:id', async (req, res) => {
   const { id } = req.params;
-  const { date, type, notes } = req.body;
-  const activity = await Activity.findByIdAndUpdate(id, { date: new Date(date), type, notes }, { new: true });
+  const { date, type, plannedNotes, actualNotes } = req.body;
+  const activity = await Activity.findByIdAndUpdate(id, { date: new Date(date), type, plannedNotes, actualNotes }, { new: true });
   res.send(activity);
 });
 
@@ -48,7 +49,7 @@ app.delete('/api/activities/:id', async (req, res) => {
   res.send({ message: 'Activity deleted' });
 });
 
-app.listen(5000, () => {
+app.listen(process.env.PORT || 5000, () => {
   console.log('Server is running on port 5000');
 });
 
