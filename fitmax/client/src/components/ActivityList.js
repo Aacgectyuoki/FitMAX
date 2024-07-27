@@ -1,5 +1,5 @@
 import React from 'react';
-import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton, TextField, Button, MenuItem } from '@mui/material';
+import { Table, TableBody, TableCell, TableContainer, TableHead, TableRow, IconButton, TextField, Button, MenuItem, Paper } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
@@ -9,6 +9,41 @@ const useStyles = makeStyles({
   table: {
     minWidth: 650,
     margin: '20px auto',
+    border: '1px solid #ccc',
+    borderRadius: '8px',
+  },
+  tableContainer: {
+    borderRadius: '15px',
+    margin: '10px 10px',
+    maxWidth: 950,
+  },
+  tableCell: {
+    textAlign: 'center',
+  },
+  tableCellActions: {
+    textAlign: 'center',
+    display: 'flex',
+    justifyContent: 'center',
+  },
+  editForm: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '10px',
+    alignItems: 'center',
+    backgroundColor: '#f0f0f0',
+    padding: '20px',
+    borderRadius: '10px',
+  },
+  button: {
+    marginTop: '10px',
+    backgroundColor: '#3f51b5',
+    color: '#fff',
+    '&:hover': {
+      backgroundColor: '#303f9f',
+    },
+  },
+  iconButton: {
+    color: '#3f51b5',
   },
 });
 
@@ -58,15 +93,15 @@ const ActivityList = ({ activities, setActivities }) => {
   const sortedActivities = activities.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
 
   return (
-    <TableContainer>
+    <TableContainer component={Paper} className={classes.tableContainer}>
       <Table className={classes.table} aria-label="activities table">
         <TableHead>
           <TableRow>
-            <TableCell>Date</TableCell>
-            <TableCell>Type</TableCell>
-            <TableCell>Planned</TableCell>
-            <TableCell>Actual</TableCell>
-            <TableCell>Actions</TableCell>
+            <TableCell style={{ fontWeight: 'bold', color: 'white', backgroundColor: '#3f51b5'}}>Date</TableCell>
+            <TableCell style={{ fontWeight: 'bold', color: 'white', backgroundColor: '#3f51b5'}}>Type</TableCell>
+            <TableCell style={{ fontWeight: 'bold', color: 'white', backgroundColor: '#3f51b5'}}>Planned</TableCell>
+            <TableCell style={{ fontWeight: 'bold', color: 'white', backgroundColor: '#3f51b5'}}>Actual</TableCell>
+            <TableCell style={{ fontWeight: 'bold', color: 'white', backgroundColor: '#3f51b5'}}>Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -74,7 +109,7 @@ const ActivityList = ({ activities, setActivities }) => {
             <TableRow key={activity._id}>
               {editId === activity._id ? (
                 <TableCell colSpan={5}>
-                  <form onSubmit={handleUpdate}>
+                  <form onSubmit={handleUpdate} className={classes.editForm}>
                     <TextField
                       name="date"
                       label="Date"
@@ -112,22 +147,22 @@ const ActivityList = ({ activities, setActivities }) => {
                       value={editForm.actualNotes}
                       onChange={handleChange}
                     />
-                    <Button type="submit" variant="contained" color="primary">
+                    <Button type="submit" variant="contained" className={classes.button}>
                       Update
                     </Button>
                   </form>
                 </TableCell>
               ) : (
                 <>
-                  <TableCell>{new Date(activity.date).toISOString().split('T')[0]}</TableCell>
-                  <TableCell>{activity.type}</TableCell>
-                  <TableCell style={{ whiteSpace: 'pre-wrap' }}>{activity.plannedNotes}</TableCell>
-                  <TableCell style={{ whiteSpace: 'pre-wrap' }}>{activity.actualNotes}</TableCell>
-                  <TableCell>
-                    <IconButton edge="end" aria-label="edit" onClick={() => handleEdit(activity)}>
+                  <TableCell className={classes.tableCell}>{new Date(activity.date).toISOString().split('T')[0]}</TableCell>
+                  <TableCell className={classes.tableCell}>{activity.type}</TableCell>
+                  <TableCell className={classes.tableCell} style={{ whiteSpace: 'pre-wrap' }}>{activity.plannedNotes}</TableCell>
+                  <TableCell className={classes.tableCell} style={{ whiteSpace: 'pre-wrap' }}>{activity.actualNotes}</TableCell>
+                  <TableCell className={classes.tableCellActions}>
+                    <IconButton edge="end" aria-label="edit" onClick={() => handleEdit(activity)} className={classes.iconButton}>
                       <EditIcon />
                     </IconButton>
-                    <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(activity._id)}>
+                    <IconButton edge="end" aria-label="delete" onClick={() => handleDelete(activity._id)} className={classes.iconButton}>
                       <DeleteIcon />
                     </IconButton>
                   </TableCell>
