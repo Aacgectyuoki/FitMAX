@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
-import { TextField, Button, MenuItem } from '@mui/material';
+import { TextField, Button, MenuItem, Snackbar, Alert, CircularProgress } from '@mui/material';
 import { makeStyles } from '@mui/styles';
 import axios from 'axios';
+import { DatePicker, LocalizationProvider } from '@mui/lab';
+import AdapterDateFns from '@mui/lab/AdapterDateFns';
+import { getWeekRange } from '../utils/dateUtils';  // Import utility function
 
 const useStyles = makeStyles({
   form: {
@@ -13,7 +16,7 @@ const useStyles = makeStyles({
   },
 });
 
-const ActivityForm = ({ fetchActivities }) => {
+const ActivityForm = ({ fetchActivities, selectedDate, setSelectedDate }) => {
   const classes = useStyles();
   const [form, setForm] = useState({
     date: '',
@@ -21,6 +24,10 @@ const ActivityForm = ({ fetchActivities }) => {
     plannedNotes: '',
     actualNotes: '',
   });
+  const [weekRange, setWeekRange] = useState({ startOfWeek: new Date(), endOfWeek: new Date() });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState(false);
 
   const handleChange = (e) => {
     setForm({
@@ -29,41 +36,73 @@ const ActivityForm = ({ fetchActivities }) => {
     });
   };
 
+  const handleDateChange = (newValue) => {
+    setForm((prevForm) => ({ ...prevForm, date: newValue.toISOString().split('T')[0] }));
+  };
+
+  const handleWeekChange = (newValue) => {
+    setSelectedDate(newValue);
+    const range = getWeekRange(newValue);  // Calculate week range
+    setWeekRange(range);
+    fetchActivities(range.startOfWeek, range.endOfWeek);  // Fetch activities for the selected week
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setLoading(true);
+    setError('');
     try {
-      const formattedDate = new Date(form.date).toISOString().split('T')[0];
-      await axios.post('http://127.0.0.1:5000/api/activities', { ...form, date: formattedDate });
+      await axios.post('http://127.0.0.1:5000/api/activities', { ...form, date: form.date });
       setForm({ date: '', type: '', plannedNotes: '', actualNotes: '' });
-      fetchActivities();
+      setSuccess(true);
+      fetchActivities(weekRange.startOfWeek, weekRange.endOfWeek);
     } catch (error) {
+      setError('Error submitting activity');
       console.error('Error submitting activity:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
   return (
     <form className={classes.form} onSubmit={handleSubmit}>
-      <TextField
-        name="date"
-        label="Date"
-        type="date"
-        value={form.date}
-        onChange={handleChange}
-        InputLabelProps={{
-          shrink: true,
-        }}
-      />
+      <LocalizationProvider dateAdapter={AdapterDateFns}>
+        {/* Week Range Picker */}
+        <DatePicker
+          label="Select Week"
+          value={selectedDate}
+          onChange={handleWeekChange}
+          renderInput={(params) => <TextField {...params} />}
+        />
+
+        {/* Date Picker for Activity Date */}
+        <DatePicker
+          label="Date"
+          value={form.date ? new Date(form.date) : null}
+          onChange={handleDateChange}
+          renderInput={(params) => <TextField {...params} required />}
+        />
+      </LocalizationProvider>
+
+      {/* Type Field */}
       <TextField
         name="type"
         label="Type"
         select
         value={form.type}
         onChange={handleChange}
+        required
       >
         <MenuItem value="run">Run</MenuItem>
         <MenuItem value="lift">Lift</MenuItem>
         <MenuItem value="XT">XT</MenuItem>
+        <MenuItem value="yoga">Yoga</MenuItem>
+        <MenuItem value="activation">Activation Exercises</MenuItem>
+        <MenuItem value="recovery">Recovery Exercises</MenuItem>
+        <MenuItem value="other">Other</MenuItem>
       </TextField>
+
+      {/* Planned Notes */}
       <TextField
         name="plannedNotes"
         label="Planned"
@@ -72,6 +111,8 @@ const ActivityForm = ({ fetchActivities }) => {
         value={form.plannedNotes}
         onChange={handleChange}
       />
+      
+      {/* Actual Notes */}
       <TextField
         name="actualNotes"
         label="Actual"
@@ -80,9 +121,19 @@ const ActivityForm = ({ fetchActivities }) => {
         value={form.actualNotes}
         onChange={handleChange}
       />
-      <Button type="submit" variant="contained" color="primary">
-        Submit
+      
+      {/* Submit Button */}
+      <Button type="submit" variant="contained" color="primary" disabled={loading}>
+        {loading ? <CircularProgress size={24} /> : 'Submit'}
       </Button>
+      
+      {/* Error and Success Alerts */}
+      {error && <Alert severity="error">{error}</Alert>}
+      <Snackbar open={success} autoHideDuration={6000} onClose={() => setSuccess(false)}>
+        <Alert onClose={() => setSuccess(false)} severity="success">
+          Activity submitted successfully!
+        </Alert>
+      </Snackbar>
     </form>
   );
 };
